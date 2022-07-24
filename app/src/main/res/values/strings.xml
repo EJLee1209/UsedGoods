@@ -1,0 +1,6 @@
+<resources>
+    <string name="app_name">UsedGoods</string>
+    <string name="menu_mypage_title">나의 정보</string>
+    <string name="menu_chatList_title">채팅</string>
+    <string name="menu_home_title">홈</string>
+</resources>

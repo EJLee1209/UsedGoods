@@ -24,7 +24,6 @@ class ArticleAdapter: ListAdapter<ArticleModel, ArticleAdapter.ViewHolder>(diffU
                     .load(articleModel.imageUrl)
                     .into(binding.thumbnailImageView)
             }
-
         }
     }
 

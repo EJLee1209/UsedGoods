@@ -1,5 +1,6 @@
 package com.dldmswo1209.usedgoods.chatlist
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -9,6 +10,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.dldmswo1209.usedgoods.DBKey.Companion.CHILD_CHAT
 import com.dldmswo1209.usedgoods.DBKey.Companion.DB_USERS
 import com.dldmswo1209.usedgoods.R
+import com.dldmswo1209.usedgoods.chatdetail.ChatRoomActivity
 import com.dldmswo1209.usedgoods.databinding.FragmentChatlistBinding
 import com.dldmswo1209.usedgoods.home.ArticleAdapter
 import com.google.firebase.auth.FirebaseAuth
@@ -33,9 +35,13 @@ class ChatListFragment: Fragment(R.layout.fragment_chatlist) {
         super.onViewCreated(view, savedInstanceState)
         mBinding = FragmentChatlistBinding.bind(view)
 
-        chatListAdapter = ChatListAdapter(onItemClicked = {
+        chatListAdapter = ChatListAdapter(onItemClicked = { chatRoom ->
             // 채팅방으로 이동하는 코드
-
+            context?.let{
+                val intent = Intent(it, ChatRoomActivity::class.java)
+                intent.putExtra("chatKey", chatRoom.key)
+                startActivity(intent)
+            }
         })
         chatRoomList.clear()
 
@@ -48,18 +54,16 @@ class ChatListFragment: Fragment(R.layout.fragment_chatlist) {
         chatDB.addListenerForSingleValueEvent(object: ValueEventListener{
             override fun onDataChange(snapshot: DataSnapshot) {
                 snapshot.children.forEach {
-                    val model = it.getValue(ChatListItem::class.java)
+                    val model = it.getValue(ChatListItem::class.java) // ChatListItem 객체 형태로 채팅방 정보를 가져옴
                     model ?: return
 
-                    chatRoomList.add(model)
+                    chatRoomList.add(model) // 채팅방 리스트에 추가
                 }
                 chatListAdapter.submitList(chatRoomList)
                 chatListAdapter.notifyDataSetChanged()
             }
 
-            override fun onCancelled(error: DatabaseError) {
-
-            }
+            override fun onCancelled(error: DatabaseError) {}
         })
     }
 

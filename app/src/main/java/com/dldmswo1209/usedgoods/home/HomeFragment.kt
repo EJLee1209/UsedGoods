@@ -2,7 +2,9 @@ package com.dldmswo1209.usedgoods.home
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.View
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.dldmswo1209.usedgoods.DBKey.Companion.CHILD_CHAT
@@ -13,11 +15,9 @@ import com.dldmswo1209.usedgoods.DBKey.Companion.DB_ARTICLES
 import com.dldmswo1209.usedgoods.DBKey.Companion.DB_USERS
 import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.UserInfo
 import com.google.firebase.auth.ktx.auth
-import com.google.firebase.database.ChildEventListener
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.DatabaseReference
+import com.google.firebase.database.*
 import com.google.firebase.database.ktx.database
 import com.google.firebase.ktx.Firebase
 
@@ -55,30 +55,43 @@ class HomeFragment: Fragment(R.layout.fragment_home) {
         articleAdapter = ArticleAdapter(onItemClicked = {articleModel ->
             if(auth.currentUser != null){
                 // 로그인을 한 상태
-                if(auth.currentUser?.uid != articleModel.sellerId){
-                    val chatRoom = ChatListItem(
-                        buyerId= auth.currentUser!!.uid,
-                        sellerId = articleModel.sellerId,
-                        itemTitle = articleModel.title,
-                        key = System.currentTimeMillis()
-                    )
-                    // 같은 게시물을 여러번 누르면 누르는 대로 채팅방 리스트가 생성되는 버그가 있음
-                    userDB.child(auth.currentUser!!.uid)
-                        .child(CHILD_CHAT)
-                        .push()
-                        .setValue(chatRoom)
+                userDB.child(auth.currentUser!!.uid)
+                    .addListenerForSingleValueEvent(object:ValueEventListener{
+                        override fun onDataChange(snapshot: DataSnapshot) {
+                            val user = snapshot.getValue(com.dldmswo1209.usedgoods.mypage.UserInfo::class.java)
+                            // 현재 유저의 닉네임을 가져옴
+                            val currentUserName = user!!.name
 
-                    userDB.child(articleModel.sellerId)
-                        .child(CHILD_CHAT)
-                        .push()
-                        .setValue(chatRoom)
+                            if(auth.currentUser?.uid != articleModel.sellerId){ // 내가 올린 게시물이 아니라면
+                                val chatRoom = ChatListItem( // 채팅방 객체 생성
+                                    buyerId= auth.currentUser!!.uid,
+                                    sellerId = articleModel.sellerId,
+                                    buyerName= currentUserName,
+                                    sellerName = articleModel.sellerName,
+                                    itemTitle = articleModel.title,
+                                    key = System.currentTimeMillis()
+                                )
+                                // 같은 게시물을 여러번 누르면 누르는 대로 채팅방 리스트가 생성되는 버그가 있음(key 값이 고유한 값이 아니고 그냥 현재 시간으로 저장하기 때문)
+                                userDB.child(auth.currentUser!!.uid)
+                                    .child(CHILD_CHAT)
+                                    .push()
+                                    .setValue(chatRoom) // 채팅방 정보를 DB에 저장
+
+                                userDB.child(articleModel.sellerId)
+                                    .child(CHILD_CHAT)
+                                    .push()
+                                    .setValue(chatRoom)
+                                Snackbar.make(view, "채팅방이 생성되었습니다. 채팅탭에서 확인해주세요.", Snackbar.LENGTH_LONG).show()
+                            }else{
+                                // 내가 올린 아이템
+                                Snackbar.make(view, "내가 올린 아이템입니다.", Snackbar.LENGTH_LONG).show()
+                            }
+                        }
+
+                        override fun onCancelled(error: DatabaseError) {}
+                    })
 
 
-                    Snackbar.make(view, "채팅방이 생성되었습니다. 채팅탭에서 확인해주세요.", Snackbar.LENGTH_LONG).show()
-                }else{
-                    // 내가 올린 아이템
-                    Snackbar.make(view, "내가 올린 아이템입니다.", Snackbar.LENGTH_LONG).show()
-                }
             }else{
                 // 로그인을 안한 상태
                 Snackbar.make(view, "로그인 후 사용해주세요", Snackbar.LENGTH_LONG).show()

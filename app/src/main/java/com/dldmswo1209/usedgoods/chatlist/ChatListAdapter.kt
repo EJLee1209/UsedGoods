@@ -13,7 +13,7 @@ class ChatListAdapter(val onItemClicked: (ChatListItem) -> Unit): ListAdapter<Ch
             binding.root.setOnClickListener {
                 onItemClicked(chatListItem)
             }
-            binding.chatRoomTitleTextview.text = chatListItem.itemTitle
+            binding.chatRoomTitleTextview.text = chatListItem.buyerName
         }
     }
 

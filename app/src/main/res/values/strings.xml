@@ -3,4 +3,14 @@
     <string name="menu_mypage_title">나의 정보</string>
     <string name="menu_chatList_title">채팅</string>
     <string name="menu_home_title">홈</string>
+    <string name="title_activity_chat_room">ChatRoomActivity</string>
+    <!-- Strings used for fragments for navigation -->
+    <string name="first_fragment_label">First Fragment</string>
+    <string name="second_fragment_label">Second Fragment</string>
+    <string name="next">Next</string>
+    <string name="previous">Previous</string>
+
+    <string name="hello_first_fragment">Hello first fragment</string>
+    <string name="hello_second_fragment">Hello second fragment. Arg: %1$s</string>
+    <string name="write_name">닉네임을 입력해주세요.</string>
 </resources>

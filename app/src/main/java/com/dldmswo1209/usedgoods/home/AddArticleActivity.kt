@@ -12,9 +12,13 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import com.dldmswo1209.usedgoods.databinding.ActivityArticleAddBinding
 import com.dldmswo1209.usedgoods.DBKey.Companion.DB_ARTICLES
+import com.dldmswo1209.usedgoods.DBKey.Companion.DB_USERS
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
+import com.google.firebase.database.ValueEventListener
 import com.google.firebase.database.ktx.database
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.FirebaseStorage
@@ -104,11 +108,20 @@ class AddArticleActivity : AppCompatActivity() {
             }
     }
     private fun uploadArticle(sellerId: String, title: String, price: String, imageUrl: String){
-        val model = ArticleModel(sellerId, title, System.currentTimeMillis(), "$price 원", imageUrl) // ArticleModel 생성
-        articleDB.push().setValue(model) // Realtime DB에 저장
+        val userDB = Firebase.database.reference.child(DB_USERS).child(auth.currentUser!!.uid)
+        userDB.addListenerForSingleValueEvent(object: ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                val user = snapshot.getValue(com.dldmswo1209.usedgoods.mypage.UserInfo::class.java)
+                val currentUserName = user!!.name
+                val model = ArticleModel(sellerId,currentUserName ,title, System.currentTimeMillis(), "$price 원", imageUrl) // ArticleModel 생성
+                articleDB.push().setValue(model) // Realtime DB에 저장
 
-        hideProgress() // progressbar 를 숨김
-        finish()
+                hideProgress() // progressbar 를 숨김
+                finish()
+            }
+            override fun onCancelled(error: DatabaseError) {}
+        })
+
     }
 
     override fun onRequestPermissionsResult(
